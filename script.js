@@ -1,3 +1,14 @@
+window.onload = () => {
+    setTimeout(() => {
+        const fader = document.querySelector('.fader');
+        fader.style.transition = 'opacity .5s ease-out';
+        fader.style.opacity = '0';
+        setTimeout(() => {
+            fader.parentElement.removeChild(fader);
+        }, 1000);
+    }, 1000);
+};
+
 /**
  * Баги
  */
@@ -161,6 +172,8 @@ function onMouseMove (e) {
 function onMouseDown (e) {
     if (Math.hypot(e.clientX - canvasRect.x - ball.x, e.clientY - canvasRect.y - ball.y) <= ball.r) {
         ball.needAnimateInertia = false;
+        ball.velocity.x = 0;
+        ball.velocity.y = 0;
         // console.warn('In ball');
         mouseCoords.startX = e.clientX - canvasRect.x;
         mouseCoords.startY = e.clientY - canvasRect.y;
