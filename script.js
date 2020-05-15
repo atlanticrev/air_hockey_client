@@ -42,8 +42,8 @@ const mouseCoords = {
 };
 
 const ball = {
-    x: 120,
-    y: 100,
+    x: center.x,
+    y: center.y,
     r: 20,
     velocity: {
         x: null,
@@ -150,8 +150,8 @@ function onMouseMove (e) {
     // ball.y += mouseCoords.currentY - mouseCoords.startY;
 
     // @todo Нужна поправка при касании мышкой
-    ball.x = Math.max(41, Math.min(mouseCoords.currentX - mouseCoords.offsetX, 759));
-    ball.y = Math.max(41, Math.min(mouseCoords.currentY - mouseCoords.offsetY, 459));
+    ball.x = Math.max(20 + ball.r + 1, Math.min(mouseCoords.currentX - mouseCoords.offsetX, 780 - ball.r - 1));
+    ball.y = Math.max(20 + ball.r + 1, Math.min(mouseCoords.currentY - mouseCoords.offsetY, 480 - ball.r - 1));
 
     ball.velocity.x = e.clientX - canvasRect.x - mouseCoords.startX;
     ball.velocity.y = e.clientY - canvasRect.y - mouseCoords.startY;
