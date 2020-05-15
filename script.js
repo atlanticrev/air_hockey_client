@@ -104,7 +104,7 @@ function drawBall ({x, y, r}) {
 /**
  * Рендеринг
  */
-const positionFix = 0;
+const positionFix = 2;
 
 function renderLoop () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
