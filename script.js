@@ -1,9 +1,6 @@
 /**
  * Баги
  */
-// @todo Шайба застревает в границах иногда
-// @todo Если увести в зажатом состоянии мышь с поля, не срабатывает обработчик отжатия мыши
-// @todo При нажатии на шайбу центр шайбы прыгает на координаты курсора мыши
 // @todo При маленькой скорости все равно остается инерция
 // @todo Подкорректировать расчет скорости
 
@@ -25,7 +22,9 @@ const canvasRect = canvas.getBoundingClientRect();
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
 
-canvas.style.backgroundColor = '#2a60cc';
+// canvas.style.backgroundColor = '#2a60cc';
+// canvas.style.backgroundColor = '#13506d';
+canvas.style.backgroundColor = '#06292f';
 
 const center = {
     x: canvas.width / 2,
@@ -110,20 +109,18 @@ function renderLoop () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGameTable();
 
-    // Анимация инерции
+    // // Анимация инерции
     if (ball.needAnimateInertia) {
         if (ball.x - ball.r <= 20 + positionFix || ball.x + ball.r >= 780 - positionFix) {
             ball.velocity.x = -ball.velocity.x;
-            ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR;
-        } else if (ball.x - ball.r > 20 + positionFix || ball.x + ball.r < 780 - positionFix) {
-            ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR;
         }
         if (ball.y - ball.r <= 20 + positionFix || ball.y + ball.r >= 480 - positionFix) {
             ball.velocity.y = -ball.velocity.y;
-            ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR;
-        } else if (ball.y - ball.r > 20 + positionFix || ball.y + ball.r < 480 - positionFix) {
-            ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR;
         }
+        ball.x = Math.max(20 + ball.r + 1, Math.min(ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR, 780 - ball.r - 1));
+        ball.y = Math.max(20 + ball.r + 1, Math.min(ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR, 480 - ball.r - 1));
+        // ball.x = ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR;
+        // ball.y = ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR;
     }
 
     drawBall(ball);
