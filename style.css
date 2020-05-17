@@ -48,7 +48,7 @@ canvas {
   right: 0;
   z-index: 999;
   background-color: black;
-  opacity: .9;
+  opacity: .99;
 }
 
 .fader-text {

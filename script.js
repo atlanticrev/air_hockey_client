@@ -3,6 +3,7 @@ window.onload = () => {
         const fader = document.querySelector('.fader');
         fader.style.transition = 'opacity .5s ease-out';
         fader.style.opacity = '0';
+        startRenderLoop();
         setTimeout(() => {
             fader.parentElement.removeChild(fader);
         }, 1000);
@@ -12,8 +13,10 @@ window.onload = () => {
 /**
  * Баги
  */
-// @todo При маленькой скорости все равно остается инерция
+// @todo При маленькой скорости все равно остается инерция у шайбы
 // @todo Подкорректировать расчет скорости
+// @todo Манипулятор не должен перекрывать шайбу
+// @todo Указать правильные действия при столкновении шайбы с манипулятором
 
 /**
  * Начальные установки
@@ -62,16 +65,16 @@ const ball = {
     needAnimateInertia: false
 };
 
-const manipulatorOne = {
-    x: center.x - center.x / 2,
-    y: center.y,
-    r: 20,
-    velocity: {
-        x: 0,
-        y: 0
-    },
-    needAnimateInertia: false
-};
+// const manipulatorOne = {
+//     x: center.x - center.x / 2,
+//     y: center.y,
+//     r: 20,
+//     velocity: {
+//         x: 0,
+//         y: 0
+//     },
+//     needAnimateInertia: false
+// };
 
 const manipulatorTwo = {
     x: center.x + center.x / 2,
@@ -81,6 +84,16 @@ const manipulatorTwo = {
         x: 0,
         y: 0
     },
+};
+
+const mouseMoveTime = {
+    prev: 0,
+    curr: 0
+};
+
+const frameTime = {
+    prev: 0,
+    curr: 0
 };
 
 const VELOCITY_DECREASE_FACTOR = 0.99;
@@ -143,7 +156,7 @@ function drawManipulator ({x, y, r}) {
     ctx.closePath();
 
     ctx.beginPath();
-    ctx.arc(x, y, r / 2, 0, 2 * Math.PI);
+    ctx.arc(x, y, r / 2.5, 0, 2 * Math.PI);
     ctx.fill();
     ctx.closePath();
 }
@@ -154,13 +167,17 @@ function drawManipulator ({x, y, r}) {
 const positionFix = 2;
 
 function renderLoop () {
+    // Расчет длины кадра в ms
+    frameTime.curr = performance.now() - frameTime.prev;
+    frameTime.prev = performance.now();
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGameTable();
 
     if (Math.hypot((manipulatorTwo.x - ball.x), (manipulatorTwo.y - ball.y)) <= manipulatorTwo.r + ball.r) {
         // audio.play();
-        ball.velocity.x = manipulatorTwo.velocity.x;
-        ball.velocity.y = manipulatorTwo.velocity.y;
+        ball.velocity.x = manipulatorTwo.velocity.x * frameTime.curr;
+        ball.velocity.y = manipulatorTwo.velocity.y * frameTime.curr;
     }
 
     // Анимация движения шайбы
@@ -170,6 +187,7 @@ function renderLoop () {
     if (ball.y - ball.r <= 20 + positionFix || ball.y + ball.r >= 480 - positionFix) {
         ball.velocity.y = -ball.velocity.y;
     }
+
     ball.x = Math.max(20 + ball.r + 1, Math.min(ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR, 780 - ball.r - 1));
     ball.y = Math.max(20 + ball.r + 1, Math.min(ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR, 480 - ball.r - 1));
 
@@ -177,6 +195,13 @@ function renderLoop () {
     drawManipulator(manipulatorTwo);
 
     requestAnimationFrame(renderLoop);
+}
+
+function startRenderLoop () {
+    requestAnimationFrame(() => {
+        frameTime.prev = performance.now();
+        requestAnimationFrame(() => renderLoop());
+    });
 }
 
 /**
@@ -208,8 +233,13 @@ function onMouseMove (e) {
     // mouseCoords.startX = ball.x;
     // mouseCoords.startY = ball.y;
 
-    manipulatorTwo.velocity.x = mouseCoords.currentX - mouseCoords.startX;
-    manipulatorTwo.velocity.y = mouseCoords.currentY - mouseCoords.startY;
+    mouseMoveTime.curr = performance.now() - mouseMoveTime.prev;
+    mouseMoveTime.prev = performance.now();
+
+    // console.log(mouseMoveTime.curr);
+
+    manipulatorTwo.velocity.x = (mouseCoords.currentX - mouseCoords.startX) / mouseMoveTime.curr;
+    manipulatorTwo.velocity.y = (mouseCoords.currentY - mouseCoords.startY) / mouseMoveTime.curr;
 
     console.log(manipulatorTwo.velocity.x);
 
@@ -218,18 +248,15 @@ function onMouseMove (e) {
     //     ball.velocity.y = manipulatorTwo.velocity.y;
     // }
 
-    mouseCoords.startX = manipulatorTwo.x;
-    mouseCoords.startY = manipulatorTwo.y;
+    mouseCoords.startX = mouseCoords.currentX;
+    mouseCoords.startY = mouseCoords.currentY;
 
     // console.log('moving...');
 }
 
 function onMouseDown (e) {
     if (Math.hypot(e.clientX - canvasRect.x - manipulatorTwo.x, e.clientY - canvasRect.y - manipulatorTwo.y) <= manipulatorTwo.r) {
-        // manipulatorTwo.needAnimateInertia = false;
-
-        // manipulatorTwo.velocity.x = 0;
-        // manipulatorTwo.velocity.y = 0;
+        mouseMoveTime.prev = performance.now();
 
         mouseCoords.startX = e.clientX - canvasRect.x;
         mouseCoords.startY = e.clientY - canvasRect.y;
@@ -244,8 +271,5 @@ function onMouseDown (e) {
 
 function onMouseUp (e) {
     // console.warn('Current velocity:', ball.velocity);
-    // ball.needAnimateInertia = true;
     canvas.removeEventListener("mousemove", onMouseMove);
 }
-
-renderLoop();
