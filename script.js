@@ -4,6 +4,9 @@ window.onload = () => {
         fader.style.transition = 'opacity .5s ease-out';
         fader.style.opacity = '0';
         startRenderLoop();
+        canvas.addEventListener('mousedown', onMouseDown);
+        canvas.addEventListener('mouseup', onMouseUp);
+        document.addEventListener("mouseover", onMouseUp);
         setTimeout(() => {
             fader.parentElement.removeChild(fader);
         }, 1000);
@@ -27,14 +30,6 @@ const ctx = canvas.getContext('2d');
 const canvasRect = canvas.getBoundingClientRect();
 
 const audio = document.querySelector('audio');
-
-// @todo Нормализовать координаты (-1, 1)
-// function normalizeVector (x, y, maxWidth = canvas.width, maxHeight = canvas.height) {
-//     return {
-//         x: (x / maxWidth - 0.5) * 2,
-//         y: (x / maxHeight - 0.5) * 2,
-//     };
-// }
 
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
@@ -165,32 +160,32 @@ function drawManipulator ({x, y, r}) {
 /**
  * Рендеринг
  */
-const positionFix = 2;
-
 function renderLoop () {
     // Расчет длины кадра в ms
     frameTime.curr = performance.now() - frameTime.prev;
     frameTime.prev = performance.now();
 
+    console.log(manipulatorTwo.velocity.x);
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     drawGameTable();
 
     if (Math.hypot((manipulatorTwo.x - ball.x), (manipulatorTwo.y - ball.y)) <= manipulatorTwo.r + ball.r) {
-        // audio.play();
         ball.velocity.x = manipulatorTwo.velocity.x * frameTime.curr;
         ball.velocity.y = manipulatorTwo.velocity.y * frameTime.curr;
     }
 
     // Анимация движения шайбы
-    if (ball.x - ball.r <= 20 + positionFix || ball.x + ball.r >= 780 - positionFix) {
+    if (ball.x - ball.r <= 20 || ball.x + ball.r >= 780) {
         ball.velocity.x = -ball.velocity.x;
     }
-    if (ball.y - ball.r <= 20 + positionFix || ball.y + ball.r >= 480 - positionFix) {
+    if (ball.y - ball.r <= 20 || ball.y + ball.r >= 480) {
         ball.velocity.y = -ball.velocity.y;
     }
 
-    ball.x = Math.max(20 + ball.r + 1, Math.min(ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR, 780 - ball.r - 1));
-    ball.y = Math.max(20 + ball.r + 1, Math.min(ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR, 480 - ball.r - 1));
+    ball.x = Math.max(20 + ball.r, Math.min(ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR, 780 - ball.r));
+    ball.y = Math.max(20 + ball.r, Math.min(ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR, 480 - ball.r));
 
     drawBall(ball);
     drawManipulator(manipulatorTwo);
@@ -208,16 +203,16 @@ function startRenderLoop () {
 /**
  * Обработчики
  */
-canvas.addEventListener('mousedown', onMouseDown);
-canvas.addEventListener('mouseup', onMouseUp);
-document.addEventListener("mouseover", onMouseUp);
-
 function setCoordsWithinBorders (object) {
-    object.x = Math.max(20 + object.r + 1, Math.min(mouseCoords.currentX - mouseCoords.offsetX, 780 - object.r - 1));
-    object.y = Math.max(20 + object.r + 1, Math.min(mouseCoords.currentY - mouseCoords.offsetY, 480 - object.r - 1));
+    object.x = Math.max(20 + object.r, Math.min(mouseCoords.currentX - mouseCoords.offsetX, 780 - object.r));
+    object.y = Math.max(20 + object.r, Math.min(mouseCoords.currentY - mouseCoords.offsetY, 480 - object.r));
 }
 
 function onMouseMove (e) {
+    // Время между вызоввами mouseMove
+    mouseMoveTime.curr = performance.now() - mouseMoveTime.prev;
+    mouseMoveTime.prev = performance.now();
+
     // Переходим в координаты canvas
     mouseCoords.currentX = (e.clientX - canvasRect.x);
     mouseCoords.currentY = (e.clientY - canvasRect.y);
@@ -234,20 +229,12 @@ function onMouseMove (e) {
     // mouseCoords.startX = ball.x;
     // mouseCoords.startY = ball.y;
 
-    mouseMoveTime.curr = performance.now() - mouseMoveTime.prev;
-    mouseMoveTime.prev = performance.now();
-
     // console.log(mouseMoveTime.curr);
 
     manipulatorTwo.velocity.x = (mouseCoords.currentX - mouseCoords.startX) / mouseMoveTime.curr;
     manipulatorTwo.velocity.y = (mouseCoords.currentY - mouseCoords.startY) / mouseMoveTime.curr;
 
-    console.log(manipulatorTwo.velocity.x);
-
-    // if (Math.hypot((manipulatorTwo.x - ball.x), (manipulatorTwo.y - ball.y)) <= manipulatorTwo.r + ball.r) {
-    //     ball.velocity.x = manipulatorTwo.velocity.x;
-    //     ball.velocity.y = manipulatorTwo.velocity.y;
-    // }
+    // console.log(manipulatorTwo.velocity.x);
 
     mouseCoords.startX = mouseCoords.currentX;
     mouseCoords.startY = mouseCoords.currentY;
