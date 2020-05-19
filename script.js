@@ -1,3 +1,5 @@
+import DebugWindow from './src/DebugWindow.js';
+
 window.onload = () => {
     setTimeout(() => {
         canvas.addEventListener('mousedown', onMouseDown);
@@ -28,6 +30,8 @@ window.onload = () => {
 const canvas = document.querySelector('#game');
 const ctx = canvas.getContext('2d');
 const canvasRect = canvas.getBoundingClientRect();
+
+const debugOverlay = new DebugWindow();
 
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
@@ -154,10 +158,26 @@ function toTableCoords (coords) {
 /**
  * Рендеринг
  */
+let framesCounter = 0;
+
 function renderLoop () {
+    framesCounter++;
+
     // Расчет длины кадра в ms
     frameTime.curr = performance.now() - frameTime.prev;
     frameTime.prev = performance.now();
+
+    if (framesCounter % 5 === 0) {
+        debugOverlay.render({
+            fps: `${(1000 / frameTime.curr).toPrecision(2)} fps`,
+            timeBetweenFrames: `${frameTime.curr.toPrecision(2)} ms`,
+            timeBetweenMouseMoves: `${mouseMoveTime.curr.toPrecision(2)} ms`,
+            puckVelocityX: `${puck.velocity.x.toPrecision(2)} px/frame`,
+            puckVelocityY: `${puck.velocity.y.toPrecision(2)} px/frame`,
+            manipulatorVelocityX: `${(manipulatorTwo.velocity.x * frameTime.curr).toPrecision(2)} px/frame`,
+            manipulatorVelocityY: `${(manipulatorTwo.velocity.y * frameTime.curr).toPrecision(2)} px/frame`
+        });
+    }
 
     // console.log(manipulatorTwo.velocity.x);
 

@@ -59,3 +59,29 @@ canvas {
   color: white;
   user-select: none;
 }
+
+.debug-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 899;
+  width: 350px;
+  background-color: rgba(0, 0, 0, .85);
+  padding: 10px;
+  color: white;
+}
+
+.debug-overlay-field {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.debug-overlay-field-name {
+  margin-right: 10px;
+}
+
+.debug-overlay-section {
+  margin-bottom: 20px;
+}

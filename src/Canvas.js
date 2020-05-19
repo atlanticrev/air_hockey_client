@@ -1,3 +1,5 @@
+import Vec from "./math/Vec";
+
 export default class Canvas {
 
     constructor (selector) {
@@ -11,14 +13,15 @@ export default class Canvas {
     }
 
     normalizeVector (x, y, maxWidth = this.canvas.width, maxHeight = this.canvas.height) {
-        return {
-            x: (x / maxWidth - 0.5) * 2,
-            y: (x / maxHeight - 0.5) * 2,
-        };
+        return new Vec((x / maxWidth - 0.5) * 2, (y / maxHeight - 0.5) * 2);
     }
 
     clear () {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    _getCenterPos () {
+        return new Vec(this.canvas.width / 2, this.canvas.height / 2);
     }
 
 }
