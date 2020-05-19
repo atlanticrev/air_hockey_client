@@ -1,15 +1,15 @@
 window.onload = () => {
     setTimeout(() => {
-        const fader = document.querySelector('.fader');
-        fader.style.transition = 'opacity .5s ease-out';
-        fader.style.opacity = '0';
-        startRenderLoop();
         canvas.addEventListener('mousedown', onMouseDown);
         canvas.addEventListener('mouseup', onMouseUp);
         document.addEventListener("mouseover", onMouseUp);
+        const fader = document.querySelector('.fader');
+        fader.style.transition = 'opacity .2s ease-out';
+        fader.style.opacity = '0';
+        startRenderLoop();
         setTimeout(() => {
             fader.parentElement.removeChild(fader);
-        }, 1000);
+        }, 250);
     }, 1000);
 };
 
@@ -28,8 +28,6 @@ window.onload = () => {
 const canvas = document.querySelector('#game');
 const ctx = canvas.getContext('2d');
 const canvasRect = canvas.getBoundingClientRect();
-
-const audio = document.querySelector('audio');
 
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
@@ -50,7 +48,7 @@ const mouseCoords = {
     endY: null,
 };
 
-const ball = {
+const puck = {
     x: center.x,
     y: center.y,
     r: 20,
@@ -60,17 +58,6 @@ const ball = {
     },
     needAnimateInertia: false
 };
-
-// const manipulatorOne = {
-//     x: center.x - center.x / 2,
-//     y: center.y,
-//     r: 20,
-//     velocity: {
-//         x: 0,
-//         y: 0
-//     },
-//     needAnimateInertia: false
-// };
 
 const manipulatorTwo = {
     x: center.x + center.x / 2,
@@ -130,7 +117,7 @@ function drawGameTable () {
     ctx.closePath();
 }
 
-function drawBall ({x, y, r}) {
+function drawPuck ({x, y, r}) {
     ctx.fillStyle = '#cc940b';
     ctx.shadowColor = 'black';
     ctx.shadowBlur = 10;
@@ -157,6 +144,13 @@ function drawManipulator ({x, y, r}) {
     ctx.closePath();
 }
 
+function toTableCoords (coords) {
+    return {
+        x: coords['clientX'] - canvasRect.x,
+        y: coords['clientY'] - canvasRect.y
+    };
+}
+
 /**
  * Рендеринг
  */
@@ -165,29 +159,35 @@ function renderLoop () {
     frameTime.curr = performance.now() - frameTime.prev;
     frameTime.prev = performance.now();
 
-    console.log(manipulatorTwo.velocity.x);
+    // console.log(manipulatorTwo.velocity.x);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawGameTable();
 
-    if (Math.hypot((manipulatorTwo.x - ball.x), (manipulatorTwo.y - ball.y)) <= manipulatorTwo.r + ball.r) {
-        ball.velocity.x = manipulatorTwo.velocity.x * frameTime.curr;
-        ball.velocity.y = manipulatorTwo.velocity.y * frameTime.curr;
+    // Разрешение коллизии
+    if (Math.hypot((manipulatorTwo.x - puck.x), (manipulatorTwo.y - puck.y)) <= manipulatorTwo.r + puck.r) {
+        // puck.velocity.x = manipulatorTwo.velocity.x * frameTime.curr;
+        // puck.velocity.y = manipulatorTwo.velocity.y * frameTime.curr;
+
+        puck.velocity.x = Math.sign(manipulatorTwo.velocity.x) * .8 * frameTime.curr;
+        puck.velocity.y = Math.sign(manipulatorTwo.velocity.y) * .8 * frameTime.curr;
+        // console.warn(manipulatorTwo.velocity, puck.velocity);
     }
 
-    // Анимация движения шайбы
-    if (ball.x - ball.r <= 20 || ball.x + ball.r >= 780) {
-        ball.velocity.x = -ball.velocity.x;
+    // Отскакивание шайбы от границ
+    if (puck.x - puck.r <= 20 || puck.x + puck.r >= 780) {
+        puck.velocity.x = -puck.velocity.x;
     }
-    if (ball.y - ball.r <= 20 || ball.y + ball.r >= 480) {
-        ball.velocity.y = -ball.velocity.y;
+    if (puck.y - puck.r <= 20 || puck.y + puck.r >= 480) {
+        puck.velocity.y = -puck.velocity.y;
     }
 
-    ball.x = Math.max(20 + ball.r, Math.min(ball.x += ball.velocity.x *= VELOCITY_DECREASE_FACTOR, 780 - ball.r));
-    ball.y = Math.max(20 + ball.r, Math.min(ball.y += ball.velocity.y *= VELOCITY_DECREASE_FACTOR, 480 - ball.r));
+    // Ограничение движения шайбы за пределы границ стола
+    puck.x = Math.max(20 + puck.r, Math.min(puck.x += puck.velocity.x *= VELOCITY_DECREASE_FACTOR, 780 - puck.r));
+    puck.y = Math.max(20 + puck.r, Math.min(puck.y += puck.velocity.y *= VELOCITY_DECREASE_FACTOR, 480 - puck.r));
 
-    drawBall(ball);
+    drawPuck(puck);
     drawManipulator(manipulatorTwo);
 
     requestAnimationFrame(renderLoop);
@@ -204,8 +204,11 @@ function startRenderLoop () {
  * Обработчики
  */
 function setCoordsWithinBorders (object) {
-    object.x = Math.max(20 + object.r, Math.min(mouseCoords.currentX - mouseCoords.offsetX, 780 - object.r));
-    object.y = Math.max(20 + object.r, Math.min(mouseCoords.currentY - mouseCoords.offsetY, 480 - object.r));
+    const newPosX = object.x + (mouseCoords.currentX - mouseCoords.startX);
+    const newPosY = object.y + (mouseCoords.currentY - mouseCoords.startY);
+
+    object.x = Math.max(20 + object.r, Math.min(newPosX, 780 - object.r));
+    object.y = Math.max(20 + object.r, Math.min(newPosY, 480 - object.r));
 }
 
 function onMouseMove (e) {
@@ -213,21 +216,11 @@ function onMouseMove (e) {
     mouseMoveTime.curr = performance.now() - mouseMoveTime.prev;
     mouseMoveTime.prev = performance.now();
 
-    // Переходим в координаты canvas
-    mouseCoords.currentX = (e.clientX - canvasRect.x);
-    mouseCoords.currentY = (e.clientY - canvasRect.y);
-
-    // Перемещения центра, без поправки
-    // ball.x += mouseCoords.currentX - mouseCoords.startX;
-    // ball.y += mouseCoords.currentY - mouseCoords.startY;
+    // Переходим в координаты стола
+    mouseCoords.currentX = toTableCoords(e).x;
+    mouseCoords.currentY = toTableCoords(e).y;
 
     setCoordsWithinBorders(manipulatorTwo);
-
-    // ball.velocity.x = mouseCoords.currentX - mouseCoords.startX;
-    // ball.velocity.y = mouseCoords.currentY - mouseCoords.startY;
-    //
-    // mouseCoords.startX = ball.x;
-    // mouseCoords.startY = ball.y;
 
     // console.log(mouseMoveTime.curr);
 
@@ -238,26 +231,22 @@ function onMouseMove (e) {
 
     mouseCoords.startX = mouseCoords.currentX;
     mouseCoords.startY = mouseCoords.currentY;
-
-    // console.log('moving...');
 }
 
 function onMouseDown (e) {
+    // Если ткнули в манипулятор
     if (Math.hypot(e.clientX - canvasRect.x - manipulatorTwo.x, e.clientY - canvasRect.y - manipulatorTwo.y) <= manipulatorTwo.r) {
         mouseMoveTime.prev = performance.now();
 
-        mouseCoords.startX = e.clientX - canvasRect.x;
-        mouseCoords.startY = e.clientY - canvasRect.y;
-
-        // Сещения от точки касания до середины шайбы
-        mouseCoords.offsetX = mouseCoords.startX - manipulatorTwo.x;
-        mouseCoords.offsetY = mouseCoords.startY - manipulatorTwo.y;
+        mouseCoords.startX = toTableCoords(e).x;
+        mouseCoords.startY = toTableCoords(e).y;
 
         canvas.addEventListener('mousemove', onMouseMove);
     }
 }
 
-function onMouseUp (e) {
-    // console.warn('Current velocity:', ball.velocity);
+function onMouseUp () {
+    manipulatorTwo.velocity.x = 0;
+    manipulatorTwo.velocity.y = 0;
     canvas.removeEventListener("mousemove", onMouseMove);
 }
