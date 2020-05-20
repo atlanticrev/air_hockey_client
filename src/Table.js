@@ -1,6 +1,6 @@
 import Vec from "./math/Vec.js";
 
-export default class GameTable {
+export default class Table {
 
     constructor (tablePadding = 20, circleRadius = 50) {
         this.canvasRect = ctx.canvas.getBoundingClientRect();

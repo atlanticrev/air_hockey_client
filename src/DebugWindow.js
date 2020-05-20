@@ -4,7 +4,7 @@ export default class DebugWindow {
         this.overlay = document.createElement('div');
         this.overlay.classList.add('debug-overlay');
 
-        const overlayBody = `
+        this.overlay.innerHTML = `
             <div class="overlay-body">
               <section class="debug-overlay-section">
                   <div class="debug-overlay-field">
@@ -42,8 +42,6 @@ export default class DebugWindow {
               </section>
             </div>
         `;
-
-        this.overlay.innerHTML = overlayBody;
 
         this.timeBetweenFrames = this.overlay.querySelector('#time-between-frames');
         this.timeBetweenMouseMoves = this.overlay.querySelector('#time-between-mouse-moves');

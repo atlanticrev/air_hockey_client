@@ -1,4 +1,5 @@
 import DebugWindow from './src/DebugWindow.js';
+// import Canvas from './src/Canvas.js';
 
 window.onload = () => {
     setTimeout(() => {
@@ -18,6 +19,7 @@ window.onload = () => {
 /**
  * Баги
  */
+// @todo Поправить "скорость перерисовки" ручки под курсором
 // @todo При маленькой скорости все равно остается инерция у шайбы
 // @todo Подкорректировать расчет скорости
 // @todo Манипулятор не должен перекрывать шайбу
@@ -27,11 +29,12 @@ window.onload = () => {
 /**
  * Начальные установки
  */
+const debugOverlay = new DebugWindow();
+
+/* Вынести в класс Canvas */
 const canvas = document.querySelector('#game');
 const ctx = canvas.getContext('2d');
 const canvasRect = canvas.getBoundingClientRect();
-
-const debugOverlay = new DebugWindow();
 
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
@@ -42,6 +45,9 @@ const center = {
     x: canvas.width / 2,
     y: canvas.height / 2,
 };
+/* Вынести в класс Canvas */
+
+// const canvas = new Canvas();
 
 const mouseCoords = {
     startX: null,
@@ -60,7 +66,6 @@ const puck = {
         x: 0,
         y: 0
     },
-    needAnimateInertia: false
 };
 
 const manipulatorTwo = {
@@ -167,6 +172,7 @@ function renderLoop () {
     frameTime.curr = performance.now() - frameTime.prev;
     frameTime.prev = performance.now();
 
+    // Вывод в дебаг-панель
     if (framesCounter % 5 === 0) {
         debugOverlay.render({
             fps: `${(1000 / frameTime.curr).toPrecision(2)} fps`,
@@ -179,20 +185,13 @@ function renderLoop () {
         });
     }
 
-    // console.log(manipulatorTwo.velocity.x);
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawGameTable();
+    manipulatorTwo.velocity.x = manipulatorTwo.velocity.x * (mouseMoveTime.curr / frameTime.curr);
+    manipulatorTwo.velocity.y = manipulatorTwo.velocity.y * (mouseMoveTime.curr / frameTime.curr);
 
     // Разрешение коллизии
     if (Math.hypot((manipulatorTwo.x - puck.x), (manipulatorTwo.y - puck.y)) <= manipulatorTwo.r + puck.r) {
-        // puck.velocity.x = manipulatorTwo.velocity.x * frameTime.curr;
-        // puck.velocity.y = manipulatorTwo.velocity.y * frameTime.curr;
-
-        puck.velocity.x = Math.sign(manipulatorTwo.velocity.x) * .8 * frameTime.curr;
-        puck.velocity.y = Math.sign(manipulatorTwo.velocity.y) * .8 * frameTime.curr;
-        // console.warn(manipulatorTwo.velocity, puck.velocity);
+        puck.velocity.x = manipulatorTwo.velocity.x * frameTime.curr;
+        puck.velocity.y = manipulatorTwo.velocity.y * frameTime.curr;
     }
 
     // Отскакивание шайбы от границ
@@ -207,6 +206,9 @@ function renderLoop () {
     puck.x = Math.max(20 + puck.r, Math.min(puck.x += puck.velocity.x *= VELOCITY_DECREASE_FACTOR, 780 - puck.r));
     puck.y = Math.max(20 + puck.r, Math.min(puck.y += puck.velocity.y *= VELOCITY_DECREASE_FACTOR, 480 - puck.r));
 
+    // Отрисовка
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGameTable();
     drawPuck(puck);
     drawManipulator(manipulatorTwo);
 
@@ -242,12 +244,8 @@ function onMouseMove (e) {
 
     setCoordsWithinBorders(manipulatorTwo);
 
-    // console.log(mouseMoveTime.curr);
-
     manipulatorTwo.velocity.x = (mouseCoords.currentX - mouseCoords.startX) / mouseMoveTime.curr;
     manipulatorTwo.velocity.y = (mouseCoords.currentY - mouseCoords.startY) / mouseMoveTime.curr;
-
-    // console.log(manipulatorTwo.velocity.x);
 
     mouseCoords.startX = mouseCoords.currentX;
     mouseCoords.startY = mouseCoords.currentY;

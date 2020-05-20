@@ -4,10 +4,12 @@ export default class Canvas {
 
     constructor (selector) {
         this.canvas = document.querySelector(`${selector}`);
-        this.ctx = canvas.getContext('2d');
-        this.canvasRect = canvas.getBoundingClientRect();
-        this.canvas.width = canvas.clientWidth;
-        this.canvas.height = canvas.clientHeight;
+        this.ctx = this.canvas.getContext('2d');
+
+        this.canvasRect = this.canvas.getBoundingClientRect();
+
+        this.canvas.width = this.canvas.clientWidth;
+        this.canvas.height = this.canvas.clientHeight;
 
         this.canvas.style.backgroundColor = '#06292f';
     }
@@ -20,7 +22,7 @@ export default class Canvas {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    _getCenterPos () {
+    getCenterPos () {
         return new Vec(this.canvas.width / 2, this.canvas.height / 2);
     }
 
