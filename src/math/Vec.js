@@ -4,10 +4,14 @@ export default class Vec {
      * @param args
      */
     constructor (...args) {
-        this.x = args[0];
-        this.y = args[1];
-        this.z = args[2] || 0;
-        this.w = args[2] || 1; // Homogeneous coordinate
+        this.x = args[0] || null;
+        this.y = args[1] || null;
+    }
+
+    mulScalar (scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        return this;
     }
 
     /**

@@ -1,6 +1,6 @@
 import Vec from "./math/Vec.js";
 
-export default class Puck {
+export default class Stick {
 
     /**
      * @param {Vec} position
@@ -16,7 +16,7 @@ export default class Puck {
      * @param {CanvasRenderingContext2D} ctx
      */
     draw (ctx) {
-        ctx.fillStyle = '#cc940b';
+        ctx.fillStyle = '#ffffff';
         ctx.shadowColor = 'black';
         ctx.shadowBlur = 10;
 
@@ -24,8 +24,11 @@ export default class Puck {
         ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
         ctx.fill();
         ctx.closePath();
+
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, this.radius * 0.4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.closePath();
     }
 
 }
-
-Puck.VELOCITY_DECREASE_FACTOR = 0.98;

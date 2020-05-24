@@ -29,9 +29,8 @@ body {
 canvas {
   width: 800px;
   height: 500px;
-  /*background-image: url("https://s1.1zoom.ru/big0/596/Evening_Forests_Mountains_Firewatch_Campo_Santo_549147_1280x720.jpg");*/
-  /*background-position: center center;*/
   box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  background-color: #06292f;
 }
 
 .fader {
@@ -66,9 +65,13 @@ canvas {
   right: 20px;
   z-index: 899;
   width: 350px;
-  background-color: rgba(0, 0, 0, .85);
+  /*background-color: rgba(0, 0, 0, .85);*/
   padding: 10px;
-  color: white;
+  color: #06292f;
+  font-weight: bold;
+  font-size: 17px;
+
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4)
 }
 
 .debug-overlay-field {

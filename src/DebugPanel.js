@@ -1,4 +1,4 @@
-export default class DebugWindow {
+export default class DebugPanel {
 
     constructor () {
         this.overlay = document.createElement('div');
@@ -57,9 +57,9 @@ export default class DebugWindow {
     }
 
     render ({timeBetweenFrames, timeBetweenMouseMoves, fps, puckVelocityX, puckVelocityY, manipulatorVelocityX, manipulatorVelocityY}) {
-        this.timeBetweenFrames.textContent = timeBetweenFrames;
+        this.fps.textContent = `${Math.round(fps)} fps`;
+        this.timeBetweenFrames.textContent = `${Math.round(timeBetweenFrames)} ms`;
         this.timeBetweenMouseMoves.textContent = timeBetweenMouseMoves;
-        this.fps.textContent = fps;
 
         this.puckVelocityX.textContent = puckVelocityX;
         this.puckVelocityY.textContent = puckVelocityY;
